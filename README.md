@@ -11,7 +11,7 @@ sinks, and above all: **avoid the spray bottle.**
 | Key | Action |
 | --- | --- |
 | ← / → | Switch lanes (going right from the right-most lane hops down to the floor; ← from the floor hops back up) |
-| ↑ or Space | Jump |
+| ↑ | Jump |
 | ↓ | Dive (fall faster mid-air) |
 | P / Esc | Pause |
 | M | Mute |

@@ -12,7 +12,7 @@
   const GRAVITY = 34;
   const JUMP_V = 11.5;
   const CLIMB_V = 12.5;            // hop from floor back up to the counter
-  const START_SPEED = 9;
+  const START_SPEED = 6.5;
   const MAX_SPEED = 22;
   const FLOOR_DRAIN = 3;           // points per second on the floor
   const SPRAY_PENALTY = 100;
@@ -562,7 +562,7 @@
     } else if (state === 'playing') {
       if (e.key === 'ArrowLeft' || k === 'a') moveLane(-1);
       else if (e.key === 'ArrowRight' || k === 'd') moveLane(1);
-      else if (e.key === 'ArrowUp' || k === 'w' || e.key === ' ') jump();
+      else if (e.key === 'ArrowUp' || k === 'w') jump();
       else if (k === 'p' || e.key === 'Escape') {
         state = 'paused';
         ui.paused.classList.remove('hidden');
