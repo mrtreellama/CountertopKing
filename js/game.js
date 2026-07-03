@@ -369,7 +369,8 @@
     const messages = {
       stove: name + ' face-planted into a hot stove! 🔥',
       sink: name + ' tumbled into the sink! 🛁',
-      gap: name + ' fell into the gap between counters! 🕳️'
+      gap: name + ' fell into the gap between counters! 🕳️',
+      broke: name + ' went bankrupt — score dropped below zero! 📉'
     };
     ui.reason.textContent = messages[reason] || (name + ' wiped out!');
     ui.finalScore.textContent = score;
@@ -540,6 +541,28 @@
     }
   }
 
+  // one-shot fast-fall for a swipe-down (keyboard uses a held ArrowDown instead)
+  function diveNow() {
+    if (!sim.onGround) sim.vy = Math.min(sim.vy, -18);
+  }
+
+  function togglePause() {
+    if (state === 'playing') {
+      state = 'paused';
+      ui.paused.classList.remove('hidden');
+    } else if (state === 'paused') {
+      state = 'playing';
+      ui.paused.classList.add('hidden');
+    }
+  }
+
+  function toggleMute() {
+    const muted = audio.toggleMute();
+    const btn = document.getElementById('mute-btn');
+    if (btn) btn.textContent = muted ? '🔇' : '🔊';
+    popup(muted ? '🔇 Muted' : '🔊 Sound on', 'good');
+  }
+
   window.addEventListener('keydown', (e) => {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) e.preventDefault();
     if (e.repeat) return;
@@ -548,8 +571,7 @@
     const k = e.key.toLowerCase();
 
     if (k === 'm') {
-      const muted = audio.toggleMute();
-      popup(muted ? '🔇 Muted' : '🔊 Sound on', 'good');
+      toggleMute();
       return;
     }
 
@@ -591,6 +613,67 @@
     }
   });
 
+  // ---------- touch / swipe input ----------
+  const SWIPE_MIN = 26;   // px before a drag counts as a swipe
+  let touchStart = null;
+
+  function markTouch() {
+    if (!document.body.classList.contains('touch')) {
+      document.body.classList.add('touch');
+    }
+  }
+
+  window.addEventListener('touchstart', (e) => {
+    markTouch();
+    audio.unlock();
+    // let taps on real buttons / cards behave normally
+    const tgt = e.target;
+    if (tgt && tgt.closest && tgt.closest('button, .card')) { touchStart = null; return; }
+    const t = e.touches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+    if (state === 'playing') e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    if (state === 'playing') e.preventDefault();  // block scroll / pull-to-refresh mid-run
+  }, { passive: false });
+
+  window.addEventListener('touchend', (e) => {
+    if (!touchStart) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    touchStart = null;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    const isSwipe = Math.max(adx, ady) >= SWIPE_MIN;
+
+    if (state === 'playing') {
+      if (!isSwipe) { jump(); return; }             // tap = jump
+      if (adx > ady) moveLane(dx > 0 ? 1 : -1);     // horizontal swipe = lanes
+      else if (dy < 0) jump();                        // swipe up = jump
+      else diveNow();                                 // swipe down = dive
+    } else if (state === 'select') {
+      if (isSwipe && adx > ady) {
+        setSelected(selectedCat === 'kyle' ? 'malcolm' : 'kyle');
+      }
+    } else if (state === 'paused') {
+      togglePause();                                  // tap anywhere to resume
+    } else if (state === 'over' && !ui.gameover.classList.contains('hidden')) {
+      newRun();                                        // tap to run again
+    }
+  });
+
+  // on-screen buttons (touch, but clickable on desktop too)
+  document.getElementById('pause-btn').addEventListener('click', () => { markTouch(); togglePause(); });
+  document.getElementById('mute-btn').addEventListener('click', () => { markTouch(); audio.unlock(); toggleMute(); });
+  document.getElementById('again-btn').addEventListener('click', (e) => { e.stopPropagation(); audio.unlock(); newRun(); });
+  document.getElementById('change-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    ui.gameover.classList.add('hidden');
+    ui.select.classList.remove('hidden');
+    state = 'select';
+  });
+
   // ---------- character select ----------
   function setSelected(id) {
     selectedCat = id;
@@ -613,7 +696,6 @@
     const meters = -sim.z;
     sim.speed = Math.min(MAX_SPEED, START_SPEED + meters * 0.012);
     sim.z -= sim.speed * dt;
-    sim.score += sim.speed * dt; // 1 point per meter
 
     // lane position
     const targetX = sim.lane < 3 ? LANE_X[sim.lane] : FLOOR_X;
@@ -642,9 +724,11 @@
       return;
     }
 
-    // floor penalty
+    // scoring: earn distance points only up on the counter; the floor is a
+    // net loss (no distance points + a steady drain), so it can't be farmed.
     const onFloor = sim.lane === 3 && sim.y < 0.05;
     if (onFloor) sim.score -= FLOOR_DRAIN * dt;
+    else sim.score += sim.speed * dt; // 1 point per meter run on the counter
     ui.floorWarn.classList.toggle('hidden', !onFloor);
 
     // world
@@ -672,6 +756,9 @@
         }
       }
     }
+
+    // going broke ends the run (e.g. lingering on the floor, or a bad spray hit)
+    if (sim.score < 0) { endRun('broke'); return; }
 
     // HUD
     const score = Math.round(sim.score);

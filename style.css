@@ -7,11 +7,20 @@ html, body {
   background: #f4e7d3;
   font-family: 'Baloo 2', 'Segoe UI', system-ui, sans-serif;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
-canvas { display: block; }
+canvas { display: block; touch-action: none; }
 
 .hidden { display: none !important; }
+
+/* Touch vs. desktop hint visibility — toggled by body.touch */
+.touch-only { display: none; }
+body.touch .desktop-only { display: none; }
+body.touch .touch-only { display: block; }
 
 /* ---------- Overlays ---------- */
 .overlay {
@@ -134,6 +143,48 @@ canvas { display: block; }
   font-weight: 600;
   pointer-events: none;
 }
+
+/* On-screen tap buttons (pause / mute) — hidden until a touch is detected */
+#topbtns {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 16;
+  display: none;
+  gap: 8px;
+}
+body.touch #topbtns { display: flex; }
+
+#topbtns button {
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(40, 26, 16, 0.72);
+  color: #fff6ea;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+#topbtns button:active { transform: scale(0.92); }
+
+/* Game-over action buttons */
+.go-btns { display: flex; gap: 14px; margin-top: 4px; }
+
+.go-btns button {
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  color: #3a281c;
+  background: #f2c437;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.25);
+}
+.go-btns button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+.go-btns #change-btn { background: rgba(255, 246, 234, 0.16); color: #fff6ea; }
 
 /* ---------- Score popups ---------- */
 #popups { position: fixed; inset: 0; z-index: 15; pointer-events: none; }

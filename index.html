@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Countertop King — Kyle &amp; Malcolm</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
@@ -53,11 +53,13 @@
       </div>
     </div>
     <div class="howto">
-      <p><b>← →</b> switch lanes &nbsp;·&nbsp; <b>↑</b> jump &nbsp;·&nbsp; <b>↓</b> dive &nbsp;·&nbsp; right-most lane hops down to the floor</p>
+      <p class="desktop-only"><b>← →</b> switch lanes &nbsp;·&nbsp; <b>↑</b> jump &nbsp;·&nbsp; <b>↓</b> dive &nbsp;·&nbsp; right-most lane hops down to the floor</p>
+      <p class="touch-only"><b>Swipe ← →</b> switch lanes &nbsp;·&nbsp; <b>swipe ↑</b> or tap to jump &nbsp;·&nbsp; <b>swipe ↓</b> dive</p>
       <p>🍗 Eat meat for points · 🥦 fruit &amp; veg cost points · ☕ knock stuff off for points<br>
          🕳️ jump the gaps · 🔥 avoid stoves &amp; sinks · 💦 dodge the spray bottle · floor costs −3/s</p>
     </div>
-    <p class="hint">Click a cat, or use ← → and press Enter</p>
+    <p class="hint desktop-only">Click a cat, or use ← → and press Enter</p>
+    <p class="hint touch-only">Tap a cat to start</p>
   </div>
 
   <!-- HUD -->
@@ -86,10 +88,19 @@
       <div>Best<br><b id="final-best">0</b></div>
     </div>
     <p id="newbest" class="hidden">👑 NEW BEST!</p>
-    <p class="hint">Press <b>Space</b> to run again &nbsp;·&nbsp; <b>C</b> to change cat</p>
+    <div class="go-btns">
+      <button id="again-btn">🔁 Run Again</button>
+      <button id="change-btn">🐱 Change Cat</button>
+    </div>
+    <p class="hint desktop-only">Press <b>Space</b> to run again &nbsp;·&nbsp; <b>C</b> to change cat</p>
   </div>
 
-  <div id="corner-hint">M mute · P pause</div>
+  <div id="topbtns">
+    <button id="pause-btn" aria-label="Pause">⏸</button>
+    <button id="mute-btn" aria-label="Mute">🔊</button>
+  </div>
+
+  <div id="corner-hint" class="desktop-only">M mute · P pause</div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="js/audio.js"></script>
