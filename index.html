@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countertop King — Kyle &amp; Malcolm</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Character select -->
+  <div id="select" class="overlay">
+    <h1>🐾 Countertop King</h1>
+    <p class="tag">Choose your cat</p>
+    <div class="cards">
+      <div class="card" id="card-kyle" data-cat="kyle">
+        <svg viewBox="0 0 120 110" class="catface">
+          <polygon points="22,42 14,6 48,26" fill="#e6873c"/>
+          <polygon points="98,42 106,6 72,26" fill="#e6873c"/>
+          <polygon points="24,38 20,14 42,28" fill="#f3b28a"/>
+          <polygon points="96,38 100,14 78,28" fill="#f3b28a"/>
+          <ellipse cx="60" cy="62" rx="44" ry="40" fill="#e6873c"/>
+          <ellipse cx="60" cy="76" rx="26" ry="22" fill="#fff6ea"/>
+          <ellipse cx="42" cy="55" rx="7" ry="9" fill="#59b551"/>
+          <ellipse cx="78" cy="55" rx="7" ry="9" fill="#59b551"/>
+          <ellipse cx="42" cy="57" rx="3" ry="5" fill="#222"/>
+          <ellipse cx="78" cy="57" rx="3" ry="5" fill="#222"/>
+          <polygon points="60,68 54,74 66,74" fill="#e07a8a"/>
+          <path d="M60 74 v6 M60 80 q-6 6 -12 3 M60 80 q6 6 12 3" stroke="#c9a06a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M20 66 h-16 M22 74 h-14 M100 66 h16 M98 74 h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h2>Kyle</h2>
+        <p>Orange &amp; white menace.<br>Fast, loud, always hungry.</p>
+      </div>
+      <div class="card" id="card-malcolm" data-cat="malcolm">
+        <svg viewBox="0 0 120 110" class="catface">
+          <polygon points="22,42 14,6 48,26" fill="#26262b"/>
+          <polygon points="98,42 106,6 72,26" fill="#26262b"/>
+          <polygon points="24,38 20,14 42,28" fill="#4a4a52"/>
+          <polygon points="96,38 100,14 78,28" fill="#4a4a52"/>
+          <ellipse cx="60" cy="62" rx="44" ry="40" fill="#26262b"/>
+          <ellipse cx="42" cy="55" rx="7" ry="9" fill="#f2c437"/>
+          <ellipse cx="78" cy="55" rx="7" ry="9" fill="#f2c437"/>
+          <ellipse cx="42" cy="57" rx="3" ry="5" fill="#111"/>
+          <ellipse cx="78" cy="57" rx="3" ry="5" fill="#111"/>
+          <polygon points="60,68 54,74 66,74" fill="#e07a8a"/>
+          <path d="M60 74 v6 M60 80 q-6 6 -12 3 M60 80 q6 6 12 3" stroke="#4a4a52" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M20 66 h-16 M22 74 h-14 M100 66 h16 M98 74 h14" stroke="#888" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h2>Malcolm</h2>
+        <p>Void cat. Silent, sneaky,<br>professional shelf-clearer.</p>
+      </div>
+    </div>
+    <div class="howto">
+      <p><b>← →</b> switch lanes &nbsp;·&nbsp; <b>↑</b> jump &nbsp;·&nbsp; <b>↓</b> dive &nbsp;·&nbsp; right-most lane hops down to the floor</p>
+      <p>🍗 Eat meat for points · 🥦 fruit &amp; veg cost points · ☕ knock stuff off for points<br>
+         🕳️ jump the gaps · 🔥 avoid stoves &amp; sinks · 💦 dodge the spray bottle · floor costs −3/s</p>
+    </div>
+    <p class="hint">Click a cat, or use ← → and press Enter</p>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-box" id="score-box">SCORE <span id="score">0</span></div>
+    <div class="hud-box" id="meters-box"><span id="meters">0</span> m</div>
+    <div class="hud-box" id="best-box">BEST <span id="best">0</span></div>
+    <div id="floor-warn" class="hidden">🧹 On the floor! −3/s — press ← to hop back up!</div>
+  </div>
+  <div id="popups"></div>
+  <div id="splash-flash"></div>
+
+  <!-- Pause -->
+  <div id="paused" class="overlay hidden">
+    <h1>⏸ Paused</h1>
+    <p class="hint">Press P to resume</p>
+  </div>
+
+  <!-- Game over -->
+  <div id="gameover" class="overlay hidden">
+    <h1>😿 Run Over!</h1>
+    <p id="reason"></p>
+    <div class="finals">
+      <div>Score<br><b id="final-score">0</b></div>
+      <div>Distance<br><b id="final-meters">0 m</b></div>
+      <div>Best<br><b id="final-best">0</b></div>
+    </div>
+    <p id="newbest" class="hidden">👑 NEW BEST!</p>
+    <p class="hint">Press <b>Space</b> to run again &nbsp;·&nbsp; <b>C</b> to change cat</p>
+  </div>
+
+  <div id="corner-hint">M mute · P pause</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/models.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
