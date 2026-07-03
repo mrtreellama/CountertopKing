@@ -117,9 +117,25 @@ body.touch .touch-only { display: block; }
 #score-box span.negative { color: #ff7a6b; }
 #meters-box span { color: #9fd8ff; }
 
-#floor-warn {
+#streak-banner {
   position: fixed;
   top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(222, 138, 22, 0.92);
+  color: #fff;
+  padding: 6px 18px;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 800;
+  white-space: nowrap;
+  animation: pulse 0.6s infinite alternate;
+  box-shadow: 0 3px 14px rgba(222, 138, 22, 0.4);
+}
+
+#floor-warn {
+  position: fixed;
+  top: 110px; /* below the streak banner so both can show */
   left: 50%;
   transform: translateX(-50%);
   background: rgba(190, 60, 40, 0.88);

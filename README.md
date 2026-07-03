@@ -22,6 +22,7 @@ sinks, and above all: **avoid the spray bottle.**
 - 🍗🥩🐟🥓 Meat: **+50 to +70**
 - 🥦🍎🥕🍌 Fruits & veggies: **−20 to −30** (yuck)
 - ☕ Knock mugs, glasses, plates, and vases off the counter: **+25**
+- 🔥 Streaks: eat the same food 3 times in a row and later ones pay **×1.5**; after 5 **×2**, after 10 **×3**. Eating a different food breaks the streak (knocking things off doesn't)
 - 💦 Hit by the spray bottle: **−100**
 - 🧹 On the floor: **−3 per second** — get back up!
 

@@ -28,7 +28,8 @@
   const ui = {
     select: el('select'), hud: el('hud'), gameover: el('gameover'), paused: el('paused'),
     score: el('score'), best: el('best'), meters: el('meters'),
-    floorWarn: el('floor-warn'), popups: el('popups'), splash: el('splash-flash'),
+    floorWarn: el('floor-warn'), streak: el('streak-banner'),
+    popups: el('popups'), splash: el('splash-flash'),
     reason: el('reason'), finalScore: el('final-score'), finalMeters: el('final-meters'),
     finalBest: el('final-best'), newbest: el('newbest')
   };
@@ -184,8 +185,8 @@
     const meters = -chunk.zEnd;
     const diff = Math.min(1, Math.max(0, (meters - 40) / 500));
     const placed = [];
-    const zMin = chunk.zEnd + 1.3;
-    const zMax = chunk.zStart - 1.3;
+    const zMin = chunk.zEnd + 1.6;
+    const zMax = chunk.zStart - 1.6;
 
     function nearGap(z, margin) {
       return chunk.gap && z < chunk.gap.z0 + margin && z > chunk.gap.z1 - margin;
@@ -200,7 +201,7 @@
         for (const p of placed) {
           const d = Math.abs(p.z - z);
           if (kind === 'obstacle' && p.kind === 'obstacle' && d < 2.4) { ok = false; break; }
-          if (p.lane === lane && d < 1.4) { ok = false; break; }
+          if (p.lane === lane && d < 2.6) { ok = false; break; }
         }
         if (ok) return { lane, z };
       }
@@ -228,20 +229,21 @@
     let foodCount = 2 + Math.floor(Math.random() * 3);
     while (foodCount-- > 0) {
       const def = pickFood(safe);
-      const spot = findSpot('food', 1.4);
+      const spot = findSpot('food', 1.6);
       if (!spot) continue;
       const count = (!safe && def.meat && Math.random() < 0.3) ? 3 : 1;
       for (let t = 0; t < count; t++) {
-        const z = spot.z - t * 1.15;
-        if (z < zMin || nearGap(z, 1.2)) break;
+        const z = spot.z - t * 2.2;
+        if (z < zMin || nearGap(z, 1.6)) break;
         if (t > 0) {
           let blocked = false;
           for (const p of placed) {
-            if (p.lane === spot.lane && Math.abs(p.z - z) < 1.0) { blocked = true; break; }
+            if (p.lane === spot.lane && Math.abs(p.z - z) < 2.0) { blocked = true; break; }
           }
           if (blocked) break;
         }
         const mesh = def.build();
+        mesh.scale.set(2, 2, 2); // double size so items read clearly at speed
         const x = LANE_X[spot.lane] + (Math.random() - 0.5) * 0.25;
         mesh.position.set(x, COUNTER_TOP, z);
         chunk.group.add(mesh);
@@ -253,10 +255,11 @@
     // knockables
     let knockCount = (Math.random() < 0.75 ? 1 : 0) + (Math.random() < 0.35 ? 1 : 0);
     while (knockCount-- > 0) {
-      const spot = findSpot('knock', 1.4);
+      const spot = findSpot('knock', 1.6);
       if (!spot) continue;
       const def = M.KNOCKABLES[Math.floor(Math.random() * M.KNOCKABLES.length)];
       const mesh = def.build();
+      mesh.scale.set(2, 2, 2); // double size so items read clearly at speed
       const x = LANE_X[spot.lane] + (Math.random() - 0.5) * 0.3;
       mesh.position.set(x, COUNTER_TOP, spot.z);
       chunk.group.add(mesh);
@@ -330,7 +333,8 @@
       onGround: true, lastGroundT: 0, t: 0,
       score: 0, speed: START_SPEED,
       nextChunkZ: 30, lastChunkHadGap: false,
-      sprayTimer: 11, dead: false, deathT: 0, deathReason: ''
+      sprayTimer: 11, dead: false, deathT: 0, deathReason: '',
+      streakName: '', streakEmoji: '', streakCount: 0
     });
 
     catMesh = M.buildCat(CAT_INFO[selectedCat].palette);
@@ -344,6 +348,7 @@
     ui.gameover.classList.add('hidden');
     ui.hud.classList.remove('hidden');
     ui.floorWarn.classList.add('hidden');
+    ui.streak.classList.add('hidden');
     state = 'playing';
     audio.meow();
   }
@@ -382,6 +387,7 @@
         ui.gameover.classList.remove('hidden');
         ui.hud.classList.add('hidden');
         ui.floorWarn.classList.add('hidden');
+        ui.streak.classList.add('hidden');
       }
     }, 900);
   }
@@ -404,17 +410,49 @@
   }
 
   // ---------- scoring events ----------
+  // streak tiers: after 3 of the same item subsequent ones pay x1.5,
+  // after 5 -> x2, after 10 -> x3
+  function streakMult(count) {
+    return count > 10 ? 3 : count > 5 ? 2 : count > 3 ? 1.5 : 1;
+  }
+
+  function updateStreakBanner() {
+    if (sim.streakCount >= 3) {
+      const next = streakMult(sim.streakCount + 1);
+      ui.streak.textContent = '🔥 ' + sim.streakEmoji + ' ' + sim.streakName +
+        ' streak ×' + next + ' (' + sim.streakCount + ' in a row)';
+      ui.streak.classList.remove('hidden');
+    } else {
+      ui.streak.classList.add('hidden');
+    }
+  }
+
   function collectFood(item) {
     item.dead = true;
     item.mesh.visible = false;
-    sim.score += item.def.value;
-    if (item.def.value > 0) {
-      popup('+' + item.def.value + ' ' + item.def.emoji + ' ' + item.def.name + '!', 'good');
+
+    // eating a different food type breaks the streak; knockables don't touch it
+    if (item.def.name === sim.streakName) {
+      sim.streakCount++;
+    } else {
+      if (sim.streakCount >= 3) popup('💔 ' + sim.streakName + ' streak broken!', 'bad');
+      sim.streakName = item.def.name;
+      sim.streakEmoji = item.def.emoji;
+      sim.streakCount = 1;
+    }
+
+    const mult = streakMult(sim.streakCount);
+    const value = Math.round(item.def.value * mult);
+    sim.score += value;
+    const tag = mult > 1 ? ' ×' + mult : '';
+    if (value > 0) {
+      popup('+' + value + ' ' + item.def.emoji + ' ' + item.def.name + '!' + tag, 'good');
       audio.eat();
     } else {
-      popup(item.def.value + ' ' + item.def.emoji + ' ' + item.def.name + '... yuck!', 'bad');
+      popup(value + ' ' + item.def.emoji + ' ' + item.def.name + '... yuck!' + tag, 'bad');
       audio.yuck();
     }
+    updateStreakBanner();
   }
 
   const KNOCK_WORDS = ['CRASH!', 'SMASH!', 'Oops!', 'Whoops!', 'Not the good china!'];
@@ -743,9 +781,9 @@
           it.mesh.position.y = (it.baseY || COUNTER_TOP) + (it.kind === 'food' ? Math.sin(sim.t * 3 + (it.phase || 0)) * 0.04 + 0.04 : 0);
           if (it.kind === 'food') it.mesh.rotation.y += dt * 1.6;
         }
-        const zThresh = it.kind === 'obstacle' ? 0.8 : 0.55;
-        if (Math.abs(it.z - sim.z) > zThresh) continue;
-        if (Math.abs(it.x - sim.x) > (it.kind === 'obstacle' ? 0.7 : 0.6)) continue;
+        if (Math.abs(it.z - sim.z) > 0.8) continue; // foods/knockables are 2x size now
+
+        if (Math.abs(it.x - sim.x) > (it.kind === 'obstacle' ? 0.7 : 0.85)) continue;
         if (sim.lane === 3) continue;
         if (it.kind === 'obstacle') {
           if (sim.y < COUNTER_TOP + it.height - 0.05) { endRun(it.type); return; }
